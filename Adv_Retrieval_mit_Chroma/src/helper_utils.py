@@ -4,6 +4,12 @@
 from pypdf import PdfReader
 from langchain.text_splitter import RecursiveCharacterTextSplitter, SentenceTransformersTokenTextSplitter
 import chromadb
+from tqdm import tqdm
+import os
+import openai
+import numpy as np
+from openai import OpenAI
+from dotenv import load_dotenv, find_dotenv
 
 def word_wrap(string, n_chars=72):
     # Wrap a string at the next space after n_chars
@@ -52,3 +58,15 @@ def load_chroma(filename, collection_name, embedding_function):
     chroma_collection.add(ids=ids, documents=chunks)
 
     return chroma_collection
+
+def project_embeddings(embeddings, umap_transform):
+    umap_embeddings = np.empty((len(embeddings),2))
+    for i, embedding in enumerate(tqdm(embeddings)): 
+        umap_embeddings[i] = umap_transform.transform([embedding])
+    return umap_embeddings
+
+def initiate_openai(ENV_File):
+    _ = load_dotenv(ENV_File) # read local .env file
+    openai.api_key = os.environ['OPENAI_API_KEY']
+
+    return OpenAI()
